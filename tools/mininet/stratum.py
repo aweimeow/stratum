@@ -2,7 +2,7 @@
 # Copyright 2018-present Open Networking Foundation
 # SPDX-License-Identifier: Apache-2.0
 
-'''
+"""
 This module contains a switch class for Mininet: StratumBmv2Switch
 
 Prerequisites
@@ -31,7 +31,7 @@ Notes
 This code has been adapted from the ONOSBmv2Switch class defined in the ONOS project
 (tools/dev/mininet/bmv2.py).
 
-'''
+"""
 
 import json
 import multiprocessing
@@ -46,8 +46,8 @@ from mininet.node import Switch, Host
 DEFAULT_NODE_ID = 1
 DEFAULT_CPU_PORT = 255
 DEFAULT_PIPECONF = "org.onosproject.pipelines.basic"
-STRATUM_BMV2 = 'stratum_bmv2'
-STRATUM_INIT_PIPELINE = '/root/dummy.json'
+STRATUM_BMV2 = "stratum_bmv2"
+STRATUM_INIT_PIPELINE = "/root/dummy.json"
 MAX_CONTROLLERS_PER_NODE = 10
 BMV2_LOG_LINES = 5
 
@@ -59,7 +59,7 @@ def writeToFile(path, value):
 
 def pickUnusedPort():
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.bind(('localhost', 0))
+    s.bind(("localhost", 0))
     addr, port = s.getsockname()
     s.close()
     return port
@@ -67,11 +67,11 @@ def pickUnusedPort():
 
 def watchdog(sw):
     try:
-        writeToFile(sw.keepaliveFile,
-                    "Remove this file to terminate %s" % sw.name)
+        writeToFile(sw.keepaliveFile, "Remove this file to terminate %s" % sw.name)
         while True:
-            if StratumBmv2Switch.mininet_exception == 1 \
-                    or not os.path.isfile(sw.keepaliveFile):
+            if StratumBmv2Switch.mininet_exception == 1 or not os.path.isfile(
+                sw.keepaliveFile
+            ):
                 sw.stop()
                 return
             if sw.stopped:
@@ -96,27 +96,33 @@ class StratumBmv2Switch(Switch):
     # exception occurred. Mininet exception handling doesn't call the stop()
     # method, so the mn process would hang after clean-up since Bmv2 would still
     # be running.
-    mininet_exception = multiprocessing.Value('i', 0)
+    mininet_exception = multiprocessing.Value("i", 0)
 
     nextGrpcPort = 50001
 
-    def __init__(self, name, json=STRATUM_INIT_PIPELINE, loglevel="warn",
-                 cpuport=DEFAULT_CPU_PORT, pipeconf=DEFAULT_PIPECONF,
-                 onosdevid=None,
-                 **kwargs):
+    def __init__(
+        self,
+        name,
+        json=STRATUM_INIT_PIPELINE,
+        loglevel="warn",
+        cpuport=DEFAULT_CPU_PORT,
+        pipeconf=DEFAULT_PIPECONF,
+        onosdevid=None,
+        **kwargs,
+    ):
         Switch.__init__(self, name, **kwargs)
         self.grpcPort = StratumBmv2Switch.nextGrpcPort
         StratumBmv2Switch.nextGrpcPort += 1
         self.cpuPort = cpuport
         self.json = json
         self.loglevel = loglevel
-        self.tmpDir = '/tmp/%s' % self.name
-        self.logfile = '%s/stratum_bmv2.log' % self.tmpDir
-        self.netcfgFile = '%s/onos-netcfg.json' % self.tmpDir
-        self.chassisConfigFile = '%s/chassis-config.txt' % self.tmpDir
+        self.tmpDir = "/tmp/%s" % self.name
+        self.logfile = "%s/stratum_bmv2.log" % self.tmpDir
+        self.netcfgFile = "%s/onos-netcfg.json" % self.tmpDir
+        self.chassisConfigFile = "%s/chassis-config.txt" % self.tmpDir
         self.pipeconfId = pipeconf
-        self.longitude = kwargs['longitude'] if 'longitude' in kwargs else None
-        self.latitude = kwargs['latitude'] if 'latitude' in kwargs else None
+        self.longitude = kwargs["longitude"] if "longitude" in kwargs else None
+        self.latitude = kwargs["latitude"] if "latitude" in kwargs else None
         if onosdevid is not None and len(onosdevid) > 0:
             self.onosDeviceId = onosdevid
         else:
@@ -128,7 +134,7 @@ class StratumBmv2Switch(Switch):
         self.stopped = True
         # In case of exceptions, mininet removes *.out files from /tmp. We use
         # this as a signal to terminate the switch instance (if active).
-        self.keepaliveFile = '/tmp/%s-watchdog.out' % self.name
+        self.keepaliveFile = "/tmp/%s-watchdog.out" % self.name
 
         # Remove files from previous executions
         self.cleanupTmpFiles()
@@ -136,23 +142,17 @@ class StratumBmv2Switch(Switch):
 
     def getOnosNetcfg(self):
         basicCfg = {
-            "managementAddress": "grpc://localhost:%d?device_id=%d" % (
-                self.grpcPort, self.nodeId),
+            "managementAddress": "grpc://localhost:%d?device_id=%d"
+            % (self.grpcPort, self.nodeId),
             "driver": "stratum-bmv2",
-            "pipeconf": self.pipeconfId
+            "pipeconf": self.pipeconfId,
         }
 
         if self.longitude and self.latitude:
             basicCfg["longitude"] = self.longitude
             basicCfg["latitude"] = self.latitude
 
-        netcfg = {
-            "devices": {
-                self.onosDeviceId: {
-                    "basic": basicCfg
-                }
-            }
-        }
+        netcfg = {"devices": {self.onosDeviceId: {"basic": basicCfg}}}
 
         return netcfg
 
@@ -167,13 +167,17 @@ nodes {{
   name: "{name} node {nodeId}"
   slot: 1
   index: 1
-}}\n""".format(name=self.name, nodeId=self.nodeId)
+}}\n""".format(
+            name=self.name, nodeId=self.nodeId
+        )
 
         intf_number = 1
         for intf_name in self.intfNames():
-            if intf_name == 'lo':
+            if intf_name == "lo":
                 continue
-            config = config + """singleton_ports {{
+            config = (
+                config
+                + """singleton_ports {{
   id: {intfNumber}
   name: "{intfName}"
   slot: 1
@@ -184,7 +188,10 @@ nodes {{
     admin_state: ADMIN_STATE_ENABLED
   }}
   node: {nodeId}
-}}\n""".format(intfName=intf_name, intfNumber=intf_number, nodeId=self.nodeId)
+}}\n""".format(
+                    intfName=intf_name, intfNumber=intf_number, nodeId=self.nodeId
+                )
+            )
             intf_number += 1
 
         return config
@@ -196,25 +203,25 @@ nodes {{
             return
 
         writeToFile("%s/grpc-port.txt" % self.tmpDir, self.grpcPort)
-        with open(self.chassisConfigFile, 'w') as fp:
+        with open(self.chassisConfigFile, "w") as fp:
             fp.write(self.getChassisConfig())
-        with open(self.netcfgFile, 'w') as fp:
+        with open(self.netcfgFile, "w") as fp:
             json.dump(self.getOnosNetcfg(), fp, indent=2)
 
         args = [
             STRATUM_BMV2,
-            '-device_id=%d' % self.nodeId,
-            '-chassis_config_file=%s' % self.chassisConfigFile,
-            '-forwarding_pipeline_configs_file=%s/pipe.txt' % self.tmpDir,
-            '-persistent_config_dir=%s' % self.tmpDir,
-            '-initial_pipeline=%s' % STRATUM_INIT_PIPELINE,
-            '-cpu_port=%s' % self.cpuPort,
-            '-external_stratum_urls=0.0.0.0:%d' % self.grpcPort,
-            '-local_stratum_url=localhost:%d' % pickUnusedPort(),
-            '-max_num_controllers_per_node=%d' % MAX_CONTROLLERS_PER_NODE,
-            '-write_req_log_file=%s/write-reqs.txt' % self.tmpDir,
-            '-logtostderr=true',
-            '-bmv2_log_level=%s' % self.loglevel,
+            "-device_id=%d" % self.nodeId,
+            "-chassis_config_file=%s" % self.chassisConfigFile,
+            "-forwarding_pipeline_configs_file=%s/pipe.txt" % self.tmpDir,
+            "-persistent_config_dir=%s" % self.tmpDir,
+            "-initial_pipeline=%s" % STRATUM_INIT_PIPELINE,
+            "-cpu_port=%s" % self.cpuPort,
+            "-external_stratum_urls=0.0.0.0:%d" % self.grpcPort,
+            "-local_stratum_url=localhost:%d" % pickUnusedPort(),
+            "-max_num_controllers_per_node=%d" % MAX_CONTROLLERS_PER_NODE,
+            "-write_req_log_file=%s/write-reqs.txt" % self.tmpDir,
+            "-logtostderr=true",
+            "-bmv2_log_level=%s" % self.loglevel,
         ]
 
         cmd_string = " ".join(args)
@@ -225,7 +232,9 @@ nodes {{
             self.logfd.write(cmd_string + "\n\n" + "-" * 80 + "\n\n")
             self.logfd.flush()
 
-            self.bmv2popen = self.popen(cmd_string, stdout=self.logfd, stderr=self.logfd)
+            self.bmv2popen = self.popen(
+                cmd_string, stdout=self.logfd, stderr=self.logfd
+            )
             print("⚡️ %s @ %d" % (STRATUM_BMV2, self.grpcPort))
 
             # We want to be notified if stratum_bmv2 quits prematurely...
@@ -242,7 +251,7 @@ nodes {{
         if os.path.isfile(self.logfile):
             print("-" * 80)
             print("%s log (from %s):" % (self.name, self.logfile))
-            with open(self.logfile, 'r') as f:
+            with open(self.logfile, "r") as f:
                 lines = f.readlines()
                 if len(lines) > BMV2_LOG_LINES:
                     print("...")
@@ -273,13 +282,12 @@ class NoOffloadHost(Host):
     def config(self, **params):
         r = super(Host, self).config(**params)
         for off in ["rx", "tx", "sg"]:
-            cmd = "/sbin/ethtool --offload %s %s off" \
-                  % (self.defaultIntf(), off)
+            cmd = "/sbin/ethtool --offload %s %s off" % (self.defaultIntf(), off)
             self.cmd(cmd)
         return r
 
 
 # Exports for bin/mn
-switches = {'stratum-bmv2': StratumBmv2Switch}
+switches = {"stratum-bmv2": StratumBmv2Switch}
 
-hosts = {'no-offload-host': NoOffloadHost}
+hosts = {"no-offload-host": NoOffloadHost}

@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 # Copyright 2018-present Barefoot Networks, Inc.
 # SPDX-License-Identifier: Apache-2.0
@@ -16,30 +16,49 @@ import threading
 import time
 import Queue
 
-parser = argparse.ArgumentParser(description='Mininet demo')
-parser.add_argument('--device-id', help='Device id of switch',
-                    type=int, action="store", default=1)
-parser.add_argument('--p4info', help='text p4info proto',
-                    type=str, action="store", required=True)
-parser.add_argument('--tofino-bin',
-                    help='Location of Tofino .bin output from p4c',
-                    type=str, action="store", required=False)
-parser.add_argument('--ctx-json',
-                    help='Location of Tofino context.json output from p4c',
-                    type=str, action="store", required=False)
-parser.add_argument('--grpc-addr', help='P4Runtime gRPC server address',
-                    type=str, action="store", default='localhost:50051')
-parser.add_argument('--loopback',
-                    help='Provide this flag if you are using the loopback '
-                    'P4 program and we will test Packet IO',
-                    action="store_true", default=False)
+parser = argparse.ArgumentParser(description="Mininet demo")
+parser.add_argument(
+    "--device-id", help="Device id of switch", type=int, action="store", default=1
+)
+parser.add_argument(
+    "--p4info", help="text p4info proto", type=str, action="store", required=True
+)
+parser.add_argument(
+    "--tofino-bin",
+    help="Location of Tofino .bin output from p4c",
+    type=str,
+    action="store",
+    required=False,
+)
+parser.add_argument(
+    "--ctx-json",
+    help="Location of Tofino context.json output from p4c",
+    type=str,
+    action="store",
+    required=False,
+)
+parser.add_argument(
+    "--grpc-addr",
+    help="P4Runtime gRPC server address",
+    type=str,
+    action="store",
+    default="localhost:9339",
+)
+parser.add_argument(
+    "--loopback",
+    help="Provide this flag if you are using the loopback "
+    "P4 program and we will test Packet IO",
+    action="store_true",
+    default=False,
+)
 
 args = parser.parse_args()
 
+
 def build_tofino_config(prog_name, bin_path, cxt_json_path):
     device_config = p4config_pb2.P4DeviceConfig()
-    with open(bin_path, 'rb') as bin_f:
-        with open(cxt_json_path, 'r') as cxt_json_f:
+    with open(bin_path, "rb") as bin_f:
+        with open(cxt_json_path, "r") as cxt_json_f:
             device_config.device_data = ""
             device_config.device_data += struct.pack("<i", len(prog_name))
             device_config.device_data += prog_name
@@ -50,6 +69,7 @@ def build_tofino_config(prog_name, bin_path, cxt_json_path):
             device_config.device_data += struct.pack("<i", len(cxt_json))
             device_config.device_data += cxt_json
     return device_config
+
 
 class Test:
     def __init__(self):
@@ -64,22 +84,25 @@ class Test:
         request.election_id.high = 0
         request.election_id.low = 1
         config = request.config
-        with open(args.p4info, 'r') as p4info_f:
+        with open(args.p4info, "r") as p4info_f:
             google.protobuf.text_format.Merge(p4info_f.read(), config.p4info)
         device_config = build_tofino_config("name", args.tofino_bin, args.ctx_json)
         config.p4_device_config = device_config.SerializeToString()
-        request.action = p4runtime_pb2.SetForwardingPipelineConfigRequest.VERIFY_AND_COMMIT
+        request.action = (
+            p4runtime_pb2.SetForwardingPipelineConfigRequest.VERIFY_AND_COMMIT
+        )
         try:
             self.stub.SetForwardingPipelineConfig(request)
         except Exception as e:
-            print "Error during SetForwardingPipelineConfig"
-            print str(e)
+            print("Error during SetForwardingPipelineConfig")
+            print(str(e))
             return False
         return True
 
     def set_up_stream(self):
         self.stream_out_q = Queue.Queue()
         self.stream_in_q = Queue.Queue()
+
         def stream_req_iterator():
             while True:
                 p = self.stream_out_q.get()
@@ -93,7 +116,8 @@ class Test:
 
         self.stream = self.stub.StreamChannel(stream_req_iterator())
         self.stream_recv_thread = threading.Thread(
-            target=stream_recv, args=(self.stream,))
+            target=stream_recv, args=(self.stream,)
+        )
         self.stream_recv_thread.start()
 
         self.handshake()
@@ -109,7 +133,7 @@ class Test:
 
         rep = self.get_stream_packet("arbitration", timeout=3)
         if rep is None:
-            print "Failed to establish handshake"
+            print("Failed to establish handshake")
 
     def tear_down_stream(self):
         self.stream_out_q.put(None)
@@ -118,7 +142,7 @@ class Test:
     def get_packet_in(self, timeout=3):
         msg = self.get_stream_packet("packet", timeout)
         if msg is None:
-            print "Packet in not received"
+            print("Packet in not received")
         else:
             return msg.packet
 
@@ -142,7 +166,8 @@ class Test:
         packet_out_req.packet.CopyFrom(packet)
         self.stream_out_q.put(packet_out_req)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     test = Test()
     test.set_up_stream()
     test.update_config()
