@@ -4,7 +4,7 @@
 # This image is not optimized for size, we can figure this out when Stratum
 # builds
 
-FROM stratumproject/build:build
+FROM stratumproject/build:build-py3
 
 ARG USER_NAME=stratum
 ARG USER_ID=1000

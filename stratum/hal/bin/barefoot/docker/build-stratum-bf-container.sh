@@ -8,7 +8,7 @@ STRATUM_ROOT=${STRATUM_ROOT:-"$( cd "$DOCKERFILE_DIR/../../../../.." >/dev/null 
 STRATUM_BF_DIR=$( cd "$DOCKERFILE_DIR/.." >/dev/null 2>&1 && pwd )
 STRATUM_TARGET=${STRATUM_TARGET:-stratum_bf}
 JOBS=${JOBS:-4}
-DOCKER_IMG=${DOCKER_IMG:-stratumproject/build:build}
+DOCKER_IMG=${DOCKER_IMG:-stratumproject/build:build-py3}
 
 print_help() {
 echo "
@@ -29,7 +29,7 @@ Additional environment variables:
     STRATUM_TARGET: stratum_bf or stratum_bfrt (Default: stratum_bf)
     STRATUM_ROOT: The root directory of Stratum.
     JOBS: The number of jobs to run simultaneously while building the base container. (Default: 4)
-    DOCKER_IMG: Docker image to use for building (Default: stratumproject/build:build)
+    DOCKER_IMG: Docker image to use for building (Default: stratumproject/build:build-py3)
     RELEASE_BUILD: Optimized build with stripped symbols (Default: false)
 "
 }
