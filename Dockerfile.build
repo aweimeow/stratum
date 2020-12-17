@@ -5,7 +5,7 @@ ARG BAZELISK_VERSION=1.6.1
 ARG PI_COMMIT=0fbdac256151eb1537cd5ebf19101d5df60767fa
 ARG BMV2_COMMIT=498202d98d83a6c580aa86a3497b9b496bcd43b2
 ARG JDK_URL=https://mirror.bazel.build/openjdk/azul-zulu11.29.3-ca-jdk11.0.2/zulu11.29.3-ca-jdk11.0.2-linux_x64.tar.gz
-ARG LLVM_REPO_NAME="deb http://apt.llvm.org/stretch/  llvm-toolchain-stretch main"
+ARG LLVM_REPO_NAME="deb http://apt.llvm.org/stretch/  llvm-toolchain-stretch-11 main"
 
 # Reasonable for CI
 ARG JOBS=2
@@ -27,13 +27,13 @@ ARG JOBS
 # BF SDE dependecies
 # + libelf-dev to build the kernel modules
 # + libbz2-dev for tar archive p4_device_config format
-ENV PKG_DEPS pkg-config zip zlib1g-dev unzip  wget ca-certificates \
+ENV PKG_DEPS pkg-config zip zlib1g-dev unzip python wget ca-certificates \
     ssh git gdb vim emacs-nox sudo libudev-dev libjudy-dev bison flex \
-    libfl-dev libgmp-dev libi2c-dev python3-yaml libyaml-dev build-essential \
+    libfl-dev libgmp-dev libi2c-dev libyaml-dev build-essential \
     lcov curl autoconf automake libtool libgmp-dev libpcap-dev \
     libboost-thread-dev libboost-filesystem-dev libboost-program-options-dev \
-    gnupg2 software-properties-common python3-pip python3-dev \
-    apt-transport-https libelf-dev libbz2-dev
+    gnupg2 software-properties-common \
+    apt-transport-https libelf-dev libbz2-dev python3-yaml python3-pip python3-dev
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends $PKG_DEPS
@@ -43,7 +43,7 @@ ARG LLVM_REPO_NAME
 RUN wget --quiet -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -
 RUN add-apt-repository "$LLVM_REPO_NAME"
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends clang-format clang
+    apt-get install -y --no-install-recommends clang-format-11 clang-11
 
 # Install java and lcov for Bazel coverage
 ARG JDK_URL
@@ -103,7 +103,3 @@ RUN apt-get update && apt-get install -y --no-install-recommends docker-ce-cli
 # TODO the curl line can be dropped in Debian 10
 RUN curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash
 RUN apt-get install -y --no-install-recommends git-lfs && git lfs install
-
-# Link python to python3 since there is no "python-is-python3" package from
-# Debian 9
-RUN ln -s /usr/bin/python3 /usr/bin/python
