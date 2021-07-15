@@ -7,7 +7,7 @@
 
 # We use a 2-stage build. Build all tools first, then copy only the strict necessary
 # to a new image with runtime dependencies.
-FROM stratumproject/build:build-py3 as builder
+FROM stratumproject/build:build as builder
 
 ENV BUILD_DEPS \
     python3-setuptools \

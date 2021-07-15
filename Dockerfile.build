@@ -28,11 +28,11 @@ ARG JOBS
 # + libelf-dev to build the kernel modules
 ENV PKG_DEPS pkg-config zip zlib1g-dev unzip python wget ca-certificates \
     ssh git gdb vim emacs-nox sudo libudev-dev libjudy-dev bison flex \
-    libfl-dev libgmp-dev libi2c-dev libyaml-dev build-essential \
+    libfl-dev libgmp-dev libi2c-dev python3-yaml libyaml-dev build-essential \
     lcov curl autoconf automake libtool libgmp-dev libpcap-dev \
     libboost-thread-dev libboost-filesystem-dev libboost-program-options-dev \
-    gnupg2 software-properties-common \
-    apt-transport-https libelf-dev libbz2-dev python3-yaml python3-pip python3-dev
+    gnupg2 software-properties-common python3-pip python3-dev \
+    apt-transport-https libelf-dev libbz2-dev
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends $PKG_DEPS
@@ -92,7 +92,7 @@ RUN wget --quiet https://github.com/bazelbuild/bazelisk/releases/download/v${BAZ
 # Tools for style and license checking
 RUN pip3 install setuptools wheel && \
     pip3 install 'cpplint==1.*'
-RUN wget -O /usr/local/bin/buildifier https://github.com/bazelbuild/buildtools/releases/download/4.0.0/buildifier
+RUN wget --quiet -O /usr/local/bin/buildifier https://github.com/bazelbuild/buildtools/releases/download/4.0.0/buildifier
 RUN chmod +x /usr/local/bin/buildifier
 
 # Docker CLI for CI builds

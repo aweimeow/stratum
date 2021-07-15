@@ -5,7 +5,7 @@
 
 ARG BAZEL_VERSION=2.2.0
 ARG JDK_URL=https://mirror.bazel.build/openjdk/azul-zulu11.29.3-ca-jdk11.0.2/zulu11.29.3-ca-jdk11.0.2-linux_x64.tar.gz
-ARG LLVM_REPO_NAME="deb http://apt.llvm.org/stretch/  llvm-toolchain-stretch-11 main"
+ARG LLVM_REPO_NAME="deb http://apt.llvm.org/stretch/  llvm-toolchain-stretch main"
 ARG PROTOBUF_TAG=v3.7.1
 ARG GRPC_TAG=v1.21.3
 ARG DPDK_VERSION=v19.08-rc4
@@ -44,7 +44,7 @@ ARG LLVM_REPO_NAME
 RUN wget --quiet -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -
 RUN add-apt-repository "$LLVM_REPO_NAME"
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends clang-format-11 clang-11
+    apt-get install -y --no-install-recommends clang-format clang
 
 ARG BAZEL_VERSION
 RUN wget https://github.com/bazelbuild/bazel/releases/download/$BAZEL_VERSION/bazel-$BAZEL_VERSION-installer-linux-x86_64.sh && \
