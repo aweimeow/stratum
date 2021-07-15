@@ -314,7 +314,6 @@ class HalServiceClient {
 
   static void* TxPacket(void* arg) {
     TxThreadData* data = static_cast<TxThreadData*>(arg);
-    // FIXME(boc) might use CHECK_NOTNULL instead of ABSL_DIE_IF_NULL
     ClientStreamChannelReaderWriter* stream = ABSL_DIE_IF_NULL(data->stream);
     P4TableMapper* p4_table_mapper = ABSL_DIE_IF_NULL(data->p4_table_mapper);
     ::p4::v1::StreamMessageRequest req;
@@ -563,8 +562,8 @@ class HalServiceClient {
           const auto& path = update.path();
           int len = path.elem_size();
           // Is this /interfaces/interface[name=<name>/status/ifindex?
-          if (len > 1 && path.elem(len - 1).name().compare("ifindex") == 0 &&
-              path.elem(1).name().compare("interface") == 0 &&
+          if (len > 1 && path.elem(len - 1).name() == "ifindex" &&
+              path.elem(1).name() == "interface" &&
               path.elem(1).key().count("name")) {
             // Save mapping between 'ifindex' and 'name'
             id_to_name[update.val().uint_val()] = path.elem(1).key().at("name");
@@ -701,7 +700,7 @@ class HalServiceClient {
 
 ABSL_CONST_INIT absl::Mutex HalServiceClient::lock_(absl::kConstInit);
 
-int Main(int argc, char** argv) {
+::util::Status Main(int argc, char** argv) {
   InitGoogle(argv[0], &argc, &argv, true);
   InitStratumLogging();
   HalServiceClient client(FLAGS_url);
@@ -725,10 +724,10 @@ int Main(int argc, char** argv) {
   } else if (FLAGS_start_gnmi_subscription_session) {
     client.StartGnmiSubscriptionSession();
   } else {
-    LOG(ERROR) << "Invalid command.";
+    RETURN_ERROR(ERR_INVALID_PARAM) << "Invalid command.";
   }
 
-  return 0;
+  return ::util::OkStatus();
 }
 
 }  // namespace stub
@@ -736,6 +735,5 @@ int Main(int argc, char** argv) {
 }  // namespace stratum
 
 int main(int argc, char** argv) {
-  FLAGS_logtostderr = true;
-  return stratum::hal::stub::Main(argc, argv);
+  return stratum::hal::stub::Main(argc, argv).error_code();
 }

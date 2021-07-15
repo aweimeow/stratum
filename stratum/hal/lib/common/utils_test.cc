@@ -2,24 +2,23 @@
 // Copyright 2018-present Open Networking Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-
 #include "stratum/hal/lib/common/utils.h"
 
-#include <string>
 #include <limits>
+#include <string>
 
-#include "stratum/lib/constants.h"
-#include "stratum/glue/status/canonical_errors.h"
-#include "gtest/gtest.h"
 #include "absl/container/flat_hash_set.h"
 #include "absl/strings/substitute.h"
 #include "google/protobuf/util/message_differencer.h"
-
-
-using ::google::protobuf::util::MessageDifferencer;
+#include "gtest/gtest.h"
+#include "stratum/glue/status/canonical_errors.h"
+#include "stratum/glue/status/status_test_util.h"
+#include "stratum/lib/constants.h"
 
 namespace stratum {
 namespace hal {
+
+using ::google::protobuf::util::MessageDifferencer;
 
 TEST(CommonUtilsTest, PrintNodeForEmptyNodeProto) {
   Node node;
@@ -425,13 +424,15 @@ TEST(DecimalUtilTest, TestFromDoubleToDecimal64) {
 
   // Some edge cases
   ::util::IsOutOfRange(
-    ConvertDoubleToDecimal64(std::numeric_limits<double>::max(), 0).status());
-  ::util::IsOutOfRange(ConvertDoubleToDecimal64(
-    std::numeric_limits<double>::min(), 0).status());
-  ::util::IsOutOfRange(ConvertDoubleToDecimal64(
-    std::numeric_limits<double>::infinity(), 0).status());
-  ::util::IsOutOfRange(ConvertDoubleToDecimal64(
-    std::numeric_limits<double>::lowest(), 0).status());
+      ConvertDoubleToDecimal64(std::numeric_limits<double>::max(), 0).status());
+  ::util::IsOutOfRange(
+      ConvertDoubleToDecimal64(std::numeric_limits<double>::min(), 0).status());
+  ::util::IsOutOfRange(
+      ConvertDoubleToDecimal64(std::numeric_limits<double>::infinity(), 0)
+          .status());
+  ::util::IsOutOfRange(
+      ConvertDoubleToDecimal64(std::numeric_limits<double>::lowest(), 0)
+          .status());
 }
 
 void DecimalToDoubleTest(int64 digits, uint32 precision, double to) {
@@ -462,6 +463,43 @@ TEST(DecimalUtilTest, TestFromDecimal64ToDouble) {
 
   DecimalToDoubleTest(0ll, 0, 0);
   DecimalToDoubleTest(-0ll, -0, 0);
+}
+
+TEST(LogSeverityUtilTest, TestFromLogSeverityToString) {
+  EXPECT_EQ("DEBUG", ConvertLogSeverityToString(LoggingConfig("0", "2")));
+  EXPECT_EQ("INFORMATIONAL",
+            ConvertLogSeverityToString(LoggingConfig("0", "1")));
+  EXPECT_EQ("NOTICE", ConvertLogSeverityToString(LoggingConfig("0", "0")));
+  EXPECT_EQ("WARNING", ConvertLogSeverityToString(LoggingConfig("1", "0")));
+  EXPECT_EQ("ERROR", ConvertLogSeverityToString(LoggingConfig("2", "0")));
+  EXPECT_EQ("CRITICAL", ConvertLogSeverityToString(LoggingConfig("3", "0")));
+}
+
+TEST(LogSeverityUtilTest, TestFromStringToLogSeverity) {
+  LoggingConfig logging_config;
+  ASSERT_OK(ConvertStringToLogSeverity("DEBUG", &logging_config));
+  EXPECT_EQ("0", logging_config.first);
+  EXPECT_EQ("2", logging_config.second);
+
+  ASSERT_OK(ConvertStringToLogSeverity("INFORMATIONAL", &logging_config));
+  EXPECT_EQ("0", logging_config.first);
+  EXPECT_EQ("1", logging_config.second);
+
+  ASSERT_OK(ConvertStringToLogSeverity("NOTICE", &logging_config));
+  EXPECT_EQ("0", logging_config.first);
+  EXPECT_EQ("0", logging_config.second);
+
+  ASSERT_OK(ConvertStringToLogSeverity("WARNING", &logging_config));
+  EXPECT_EQ("1", logging_config.first);
+  EXPECT_EQ("0", logging_config.second);
+
+  ASSERT_OK(ConvertStringToLogSeverity("ERROR", &logging_config));
+  EXPECT_EQ("2", logging_config.first);
+  EXPECT_EQ("0", logging_config.second);
+
+  ASSERT_OK(ConvertStringToLogSeverity("CRITICAL", &logging_config));
+  EXPECT_EQ("3", logging_config.first);
+  EXPECT_EQ("0", logging_config.second);
 }
 
 }  // namespace hal

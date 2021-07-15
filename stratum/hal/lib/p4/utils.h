@@ -10,6 +10,7 @@
 #include <string>
 
 #include "grpcpp/grpcpp.h"
+#include "stratum/glue/integral_types.h"
 #include "stratum/glue/status/statusor.h"
 #include "stratum/hal/lib/p4/p4_pipeline_config.pb.h"
 #include "stratum/hal/lib/p4/p4_table_map.pb.h"
@@ -35,6 +36,21 @@ std::string PrintP4ObjectID(int object_id);
     const std::string& table_map_key,
     P4TableMapValue::DescriptorCase descriptor_case,
     const std::string& log_p4_object);
+
+// These two functions take an unsigned 64/32 bit integer and encode it as a
+// byte stream in network order. Leading zeros are stripped off.
+// TODO(max): move to stratum/lib/utils.h where ByteStreamToUint() is?
+std::string Uint64ToByteStream(uint64 val);
+std::string Uint32ToByteStream(uint32 val);
+
+// Pads a P4Runtime byte string with zeros up to the given width. Surplus bytes
+// will be truncated at the front. The returned string will always be exactly as
+// long as requested.
+std::string P4RuntimeByteStringToPaddedByteString(std::string byte_string,
+                                                  size_t num_bytes);
+
+// Converts a byte string to a canonical P4Runtime byte string.
+std::string ByteStringToP4RuntimeByteString(std::string bytes);
 
 // Helper to convert a gRPC status with error details to a string. Assumes
 // ::grpc::Status includes a binary error detail which is encoding a serialized

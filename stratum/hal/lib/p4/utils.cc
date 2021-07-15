@@ -6,6 +6,10 @@
 
 #include "stratum/hal/lib/p4/utils.h"
 
+#include <arpa/inet.h>
+
+#include <algorithm>
+
 #include "absl/strings/str_format.h"
 #include "absl/strings/substitute.h"
 #include "google/rpc/code.pb.h"
@@ -69,6 +73,48 @@ std::string AddP4ObjectReferenceString(const std::string& log_p4_object) {
   }
 
   return map_value;
+}
+
+std::string Uint64ToByteStream(uint64 val) {
+  uint64 tmp = (htonl(1) == (1))
+                   ? val
+                   : (static_cast<uint64>(htonl(val)) << 32) | htonl(val >> 32);
+  std::string bytes = "";
+  bytes.assign(reinterpret_cast<char*>(&tmp), sizeof(uint64));
+  // Strip leading zeroes.
+  while (bytes.size() > 1 && bytes[0] == '\x00') {
+    bytes = bytes.substr(1);
+  }
+  return bytes;
+}
+
+std::string Uint32ToByteStream(uint32 val) {
+  uint32 tmp = htonl(val);
+  std::string bytes = "";
+  bytes.assign(reinterpret_cast<char*>(&tmp), sizeof(uint32));
+  // Strip leading zeroes.
+  while (bytes.size() > 1 && bytes[0] == '\x00') {
+    bytes = bytes.substr(1);
+  }
+  return bytes;
+}
+
+std::string P4RuntimeByteStringToPaddedByteString(std::string byte_string,
+                                                  size_t num_bytes) {
+  if (byte_string.size() > num_bytes) {
+    byte_string.erase(0, byte_string.size() - num_bytes);
+  } else {
+    byte_string.insert(0, num_bytes - byte_string.size(), '\x00');
+  }
+  DCHECK_EQ(num_bytes, byte_string.size());
+
+  return byte_string;
+}
+
+std::string ByteStringToP4RuntimeByteString(std::string bytes) {
+  // Remove leading zeros.
+  bytes.erase(0, std::min(bytes.find_first_not_of('\x00'), bytes.size() - 1));
+  return bytes;
 }
 
 std::string P4RuntimeGrpcStatusToString(const ::grpc::Status& status) {

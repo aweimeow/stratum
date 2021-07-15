@@ -2,13 +2,16 @@
 // Copyright 2018-present Open Networking Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-
 #ifndef STRATUM_GLUE_LOGGING_H_
 #define STRATUM_GLUE_LOGGING_H_
 
+#include <string>
+#include <utility>
+
 #include "gflags/gflags.h"
 
-// If for some reason ERROR gets defined somewhere, glog will not compile
+// P4c lib/log.h already defines the ERROR macro.
+// Issue: https://github.com/p4lang/p4c/issues/2523
 #ifdef ERROR
 #undef ERROR
 #endif
@@ -23,7 +26,6 @@ DECLARE_bool(logtostderr);
 
 DECLARE_bool(logtosyslog);
 
-
 // These are exported in open source glog but not base/logging.h
 using ::google::ERROR;
 using ::google::FATAL;
@@ -35,6 +37,15 @@ namespace stratum {
 // Initializes all Stratum specific changes to logging. This should be called
 // after InitGoogle by every Stratum binary.
 void InitStratumLogging();
+
+// An alias for the pair of (glog_severity, glog_verbosity).
+using LoggingConfig = std::pair<std::string, std::string>;
+
+// Returns the current glog logging configuration.
+LoggingConfig GetCurrentLogLevel();
+
+// Sets a new glog log level for the process. Returns true on success.
+bool SetLogLevel(const LoggingConfig& logging_config);
 }  // namespace stratum
 
 // ostream overload for std::nulptr_t for C++11

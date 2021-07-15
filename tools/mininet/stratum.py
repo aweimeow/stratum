@@ -210,18 +210,17 @@ nodes {{
 
         args = [
             STRATUM_BMV2,
-            "-device_id=%d" % self.nodeId,
-            "-chassis_config_file=%s" % self.chassisConfigFile,
-            "-forwarding_pipeline_configs_file=%s/pipe.txt" % self.tmpDir,
-            "-persistent_config_dir=%s" % self.tmpDir,
-            "-initial_pipeline=%s" % STRATUM_INIT_PIPELINE,
-            "-cpu_port=%s" % self.cpuPort,
-            "-external_stratum_urls=0.0.0.0:%d" % self.grpcPort,
-            "-local_stratum_url=localhost:%d" % pickUnusedPort(),
-            "-max_num_controllers_per_node=%d" % MAX_CONTROLLERS_PER_NODE,
-            "-write_req_log_file=%s/write-reqs.txt" % self.tmpDir,
-            "-logtostderr=true",
-            "-bmv2_log_level=%s" % self.loglevel,
+            f"-device_id={self.nodeId}"
+            f"-chassis_config_file={self.chassisConfigFile}"
+            f"-forwarding_pipeline_configs_file={self.tmpDir}/pipe.txt"
+            f"-persistent_config_dir={self.tmpDir}"
+            f"-initial_pipeline={self.json}"
+            f"-cpu_port={self.cpuPort}"
+            f"-external_stratum_urls=0.0.0.0:{self.grpcPort}"
+            f"-local_stratum_url=localhost:{pickUnusedPort()}"
+            f"-max_num_controllers_per_node={MAX_CONTROLLERS_PER_NODE}"
+            f"-write_req_log_file={self.tmpDir}/write-reqs.txt"
+            f"-bmv2_log_level={self.loglevel}"
         ]
 
         cmd_string = " ".join(args)
@@ -286,8 +285,20 @@ class NoOffloadHost(Host):
             self.cmd(cmd)
         return r
 
+class NoIpv6OffloadHost(NoOffloadHost):
+    def __init__(self, name, inNamespace=True, **params):
+        NoOffloadHost.__init__(self, name, inNamespace=inNamespace, **params)
+
+    def config(self, **params):
+        r = super(NoOffloadHost, self).config(**params)
+        self.cmd("sysctl net.ipv6.conf.%s.disable_ipv6=1" % (self.defaultIntf()))
+        return r
+
 
 # Exports for bin/mn
 switches = {"stratum-bmv2": StratumBmv2Switch}
 
-hosts = {"no-offload-host": NoOffloadHost}
+hosts = {
+    'no-offload-host': NoOffloadHost,
+    'no-ipv6-host': NoIpv6OffloadHost
+}

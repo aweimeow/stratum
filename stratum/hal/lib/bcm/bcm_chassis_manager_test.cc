@@ -39,6 +39,10 @@ DECLARE_string(bcm_sdk_shell_log_file);
 DECLARE_string(bcm_sdk_checkpoint_dir);
 DECLARE_string(test_tmpdir);
 
+namespace stratum {
+namespace hal {
+namespace bcm {
+
 using ::testing::_;
 using ::testing::DoAll;
 using ::testing::HasSubstr;
@@ -47,10 +51,6 @@ using ::testing::Matcher;
 using ::testing::Mock;
 using ::testing::Return;
 using ::testing::SetArgPointee;
-
-namespace stratum {
-namespace hal {
-namespace bcm {
 
 static constexpr uint64 kNodeId = 7654321ULL;
 static constexpr uint32 kPortId = 12345;
@@ -4522,9 +4522,9 @@ TEST_P(BcmChassisManagerTest, GetPortStateAfterConfigPushAndLinkEvent) {
   // WriterInterface for reporting gNMI events.
   auto gnmi_event_writer = std::make_shared<WriterMock<GnmiEventPtr>>();
   GnmiEventPtr link_up(
-      new PortOperStateChangedEvent(kNodeId, kPortId, PORT_STATE_UP));
+      new PortOperStateChangedEvent(kNodeId, kPortId, PORT_STATE_UP, 0));
   GnmiEventPtr link_down(
-      new PortOperStateChangedEvent(kNodeId, kPortId, PORT_STATE_DOWN));
+      new PortOperStateChangedEvent(kNodeId, kPortId, PORT_STATE_DOWN, 0));
 
   // Expectations for the mock objects.
   EXPECT_CALL(*bcm_serdes_db_manager_mock_, Load());
@@ -5201,7 +5201,7 @@ TEST_P(BcmChassisManagerTest, TestSendTransceiverGnmiEvent) {
 
   // Test successful Write() with new state to writer.
   GnmiEventPtr event(
-      new PortOperStateChangedEvent(kNodeId, 1234, PORT_STATE_UP));
+      new PortOperStateChangedEvent(kNodeId, 1234, PORT_STATE_UP, 0));
   EXPECT_CALL(*writer, Write(Matcher<const GnmiEventPtr&>(GnmiEventEq(event))))
       .WillOnce(Return(true));
   SendPortOperStateGnmiEvent(kNodeId, 1234, PORT_STATE_UP);

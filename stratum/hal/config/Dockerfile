@@ -2,9 +2,9 @@
 # SPDX-License-Identifier: Apache-2.0
 
 FROM bitnami/minideb:stretch
-ADD ./stratum-replay /
+ADD ./chassis_config_migrator /
 
 LABEL maintainer="Stratum dev <stratum-dev@lists.stratumproject.org>"
-LABEL description="Docker-based distribution of the stratum-replay tool"
+LABEL description="Docker-based distribution of the Stratum chassis config migration tool"
 
-ENTRYPOINT [ "/stratum-replay" ]
+ENTRYPOINT [ "/chassis_config_migrator" ]

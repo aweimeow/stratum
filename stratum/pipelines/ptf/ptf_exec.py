@@ -106,44 +106,19 @@ def setup_and_launch_ptf_runner(
         # mentioned above.  ptf_runner.py assumes the python script
         # is reachable through $PATH.
         call_ptf_runner_cmd = (
-            "sudo STRATUM_ROOT="
-            + STRATUM_ROOT
-            + " PATH="
-            + EXEC_PATH_PTF
-            + ":$PATH"
-            + " LD_LIBRARY_PATH="
-            + LD_LIBRARY_PATH
-            + " PYTHONPATH="
-            + EXEC_PATH_PTF
-            + ":"
-            + PY_IMPORT_PATH_P4RUNTIME
-            + ":"
-            + PY_IMPORT_PATH_PTF
-            + ":"
-            + PY_IMPORT_PATH_SCAPY
-            + " "
-            + EXTERNAL_PATH_P4_FABRIC_TEST
-            + "/ptf_runner.py"
+            f"sudo STRATUM_ROOT={STRATUM_ROOT}"
+            + f" PATH={EXEC_PATH_PTF}:$PATH"
+            + f" LD_LIBRARY_PATH={LD_LIBRARY_PATH}"
+            + f" PYTHONPATH={EXEC_PATH_PTF}:{PY_IMPORT_PATH_P4RUNTIME}:{PY_IMPORT_PATH_PTF}"
+            + f":{PY_IMPORT_PATH_SCAPY} {EXTERNAL_PATH_P4_FABRIC_TEST}/ptf_runner.py"
             + " --device-id 1"
-            + " --device "
-            + device
-            + " --port-map "
-            + EXTERNAL_PATH_P4_FABRIC_TEST
-            + "/port_map.veth.json"
-            + " --grpc-addr localhost:28000"
-            + " --p4info "
-            + PIPELINE_PATH_BINARY
-            + pipeline_name
-            + ".p4info"
-            + " --bmv2-json "
-            + PIPELINE_PATH_BINARY
-            + pipeline_name
-            + ".json"
+            + f" --device {device}"
+            + f" --port-map {EXTERNAL_PATH_P4_FABRIC_TEST}/port_map.veth.json"
+            + " --grpc-addr localhost:9559"
+            + f" --p4info {PIPELINE_PATH_BINARY}{pipeline_name}.p4info"
+            + f" --bmv2-json {PIPELINE_PATH_BINARY}{pipeline_name}.json"
             + " --cpu-port 64"
-            + " --ptf-dir "
-            + PIPELINE_PATH_PTF
-            + SKIP_TEST
-            + SKIP_BMV2_START
+            + f" --ptf-dir {PIPELINE_PATH_PTF}{SKIP_TEST}{SKIP_BMV2_START}"
         )
         os.system(call_ptf_runner_cmd)
 
